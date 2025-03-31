@@ -7,6 +7,7 @@ from matplotlib.widgets import Button
 # Simulation parameters
 LANE_LENGTH = 60
 NUM_CARS = 15
+HISTORY_LENGTH = 30  # Number of past steps to keep
 
 
 class Car:
@@ -77,40 +78,48 @@ def cars_to_lane(cars, lane_length=LANE_LENGTH):
     return lane
 
 
+# Initialize cars
+cars = initialize_cars()
+history = [cars_to_lane(cars)] * HISTORY_LENGTH  # Start with identical history
+
 # Setup Matplotlib Figure
-fig, ax = plt.subplots(figsize=(12, 3))
+fig, ax = plt.subplots(figsize=(12, 6))
 ax.set_xticks([])
 ax.set_yticks([])
 ax.set_xlim(-0.5, LANE_LENGTH - 0.5)
-ax.set_ylim(-0.5, 0.5)
+ax.set_ylim(-0.5, HISTORY_LENGTH - 0.5)
 
-# Initialize cars
-cars = initialize_cars()
+# Draw history rectangles
 rects = []
-
-# Draw initial lane
-lane = cars_to_lane(cars)
-for x in range(LANE_LENGTH):
-    color = color_dict[lane[x]]
-    rect = ax.add_patch(plt.Rectangle((x, 0), 1, 1, facecolor=color, edgecolor="black"))
-    rects.append(rect)
+for y in range(HISTORY_LENGTH):
+    row = []
+    for x in range(LANE_LENGTH):
+        color = color_dict[history[y][x]]
+        rect = ax.add_patch(plt.Rectangle((x, HISTORY_LENGTH - y - 1), 1, 1, facecolor=color, edgecolor="black"))
+        row.append(rect)
+    rects.append(row)
 
 # Animation Control
 running = True
 
 
 def animate(frame):
-    global cars, running
+    global cars, history, running
     if not running:
         return
 
     # Update cars
     cars = update_cars(cars)
-    lane = cars_to_lane(cars)
+    new_lane = cars_to_lane(cars)
+
+    # Update history (scroll down)
+    history.pop(0)  # Remove oldest step
+    history.append(new_lane)  # Add new step
 
     # Update rectangle colors
-    for x in range(LANE_LENGTH):
-        rects[x].set_facecolor(color_dict[lane[x]])
+    for y in range(HISTORY_LENGTH):
+        for x in range(LANE_LENGTH):
+            rects[y][x].set_facecolor(color_dict[history[y][x]])
 
 
 # Play/Pause Buttons
