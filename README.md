@@ -16,6 +16,8 @@ This program provides a graphical simulation of traffic movement using Matplotli
 - **Play/Pause Button**: Users can control the simulation with a button.
 - **Circular Lane**: Cars move in a loop, simulating a closed circuit.
 
+![traffic](https://github.com/user-attachments/assets/f316cbab-4341-460b-b884-ce7b3e4f1e19)
+
 #### Dependencies:
 - `numpy`
 - `matplotlib`
@@ -47,6 +49,9 @@ Both programs follow these basic traffic rules:
 2. Yellow cars (Y) move to Green (G) if there is even more space.
 3. Green cars (G) continue moving but slow down if obstacles appear.
 4. If a car encounters another car directly in front, it stops and turns Red (R).
+
+![image](https://github.com/user-attachments/assets/d7a4954b-9d76-4ab8-bd13-0585390b7750)
+
 
 ## License
 This project is released under the MIT License.
