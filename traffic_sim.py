@@ -16,32 +16,23 @@ class Car:
         self.velocity = velocity
         self.color = color
 
-    def __repr__(self):
-        return f"Car(pos={self.position}, vel={self.velocity}, color={self.color})"
+
+def initialize_cars():
+    positions = random.sample(range(LANE_LENGTH), NUM_CARS)
+    return [Car(pos, velocity=0, color='R') for pos in sorted(positions)]
 
 
-def initialize_cars(lane_length=LANE_LENGTH, num_cars=NUM_CARS):
-    positions = random.sample(range(lane_length), num_cars)
-    cars = [Car(pos, velocity=0, color='R') for pos in positions]
+def compute_gap(car, next_car):
+    return (next_car.position - car.position - 1) % LANE_LENGTH
+
+
+def update_cars(cars):
     cars.sort(key=lambda car: car.position)
-    return cars
-
-
-def compute_gap(car, next_car, lane_length=LANE_LENGTH):
-    if next_car.position > car.position:
-        return next_car.position - car.position - 1
-    else:
-        return lane_length - car.position + next_car.position - 1
-
-
-def update_cars(cars, lane_length=LANE_LENGTH):
-    cars.sort(key=lambda car: car.position)
-    num_cars = len(cars)
     new_states = []
 
     for i, car in enumerate(cars):
-        next_car = cars[(i + 1) % num_cars]  # Circular lane
-        gap = compute_gap(car, next_car, lane_length)
+        next_car = cars[(i + 1) % len(cars)]  # Circular lane
+        gap = compute_gap(car, next_car)
         new_velocity, new_color = car.velocity, car.color
 
         # Update rules
@@ -62,7 +53,7 @@ def update_cars(cars, lane_length=LANE_LENGTH):
     # Apply new states and move cars
     for i, car in enumerate(cars):
         car.velocity, car.color = new_states[i]
-        car.position = (car.position + car.velocity) % lane_length
+        car.position = (car.position + car.velocity) % LANE_LENGTH
 
     return cars
 
@@ -71,8 +62,8 @@ def update_cars(cars, lane_length=LANE_LENGTH):
 color_dict = {'R': (1, 0, 0), 'Y': (1, 1, 0), 'G': (0, 1, 0), '_': (1, 1, 1)}
 
 
-def cars_to_lane(cars, lane_length=LANE_LENGTH):
-    lane = ['_'] * lane_length
+def cars_to_lane(cars):
+    lane = ['_'] * LANE_LENGTH
     for car in cars:
         lane[car.position] = car.color
     return lane
@@ -95,7 +86,7 @@ for y in range(HISTORY_LENGTH):
     row = []
     for x in range(LANE_LENGTH):
         color = color_dict[history[y][x]]
-        rect = ax.add_patch(plt.Rectangle((x, HISTORY_LENGTH - y - 1), 1, 1, facecolor=color, edgecolor="black"))
+        rect = ax.add_patch(plt.Rectangle((x, y), 1, 1, facecolor=color, edgecolor="black"))
         row.append(rect)
     rects.append(row)
 
@@ -112,9 +103,9 @@ def animate(frame):
     cars = update_cars(cars)
     new_lane = cars_to_lane(cars)
 
-    # Update history (scroll down)
-    history.pop(0)  # Remove oldest step
-    history.append(new_lane)  # Add new step
+    # Update history (scroll up)
+    history.append(new_lane)  # Newest step at the bottom
+    history.pop(0)  # Remove oldest step at the top
 
     # Update rectangle colors
     for y in range(HISTORY_LENGTH):
